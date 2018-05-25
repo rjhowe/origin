@@ -377,6 +377,12 @@ backend be_secure:{{$cfgIdx}}
   tcp-request content reject if !whitelist
       {{- end }}
     {{- end }}
+    {{- with $xff_whiteList := index $cfg.Annotations "haproxy.router.openshift.io/xff_whitelist" }}
+      {{- if (matchPattern $cidrListPattern $xff_whiteList) }}
+ acl xff_whitelist hdr(x-forwarded-for)  
+ tcp-request content reject if !xff_whitelist
+      {{- end }}
+    {{- end }}
     {{- with $value := index $cfg.Annotations "haproxy.router.openshift.io/timeout"}}
       {{- if (matchPattern "[1-9][0-9]*(us|ms|s|m|h|d)?" $value) }}
   timeout server  {{$value}}
@@ -484,6 +490,12 @@ backend be_tcp:{{$cfgIdx}}
       {{- if (matchPattern $cidrListPattern $ip_whiteList) }}
   acl whitelist src {{$ip_whiteList}}
   tcp-request content reject if !whitelist
+      {{- end }}
+    {{- end }}
+    {{- with $xff_whiteList := index $cfg.Annotations "haproxy.router.openshift.io/xff_whitelist" }}
+      {{- if (matchPattern $cidrListPattern $xff_whiteList) }}
+ acl xff_whitelist hdr(x-forwarded-for)
+ tcp-request content reject if !xff_whitelist
       {{- end }}
     {{- end }}
     {{- with $value := index $cfg.Annotations "haproxy.router.openshift.io/timeout"}}
